@@ -23,6 +23,38 @@
 	
 	<context:component-scan base-package="com.care.root" />
 	
+	<beans:bean id="memInter" class="com.care.root.interceptor.MemberInterceptor" />
+	<interceptors>
+		<interceptor>
+			<mapping path="/member/list"/>
+			<mapping path="/member/logout"/>
+			<beans:ref bean="memInter"/>
+		</interceptor>
+	</interceptors>
+	
+	<beans:bean id="testInter" class="com.care.root.interceptor.TestIn" />
+	<interceptors>
+		<interceptor>
+			<mapping path="/test/index"/>
+			<beans:ref bean="testInter"/>
+		</interceptor>
+	</interceptors>
+
+	<beans:bean id="autoLogin" class="com.care.root.interceptor.AutoLoginInterceptor" />
+	<interceptors>
+		<interceptor>
+			<mapping path="/index"/>
+			<beans:ref bean="autoLogin"/>
+		</interceptor>
+	</interceptors>
+	
+	<beans:bean id="board" class="com.care.root.interceptor.BoardInterceptor" />
+	<interceptors>
+		<interceptor>
+			<mapping path="/board/writeForm"/>
+			<beans:ref bean="board"/>
+		</interceptor>
+	</interceptors>
 	
 	
 </beans:beans>

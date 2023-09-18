@@ -29,6 +29,7 @@
 		<a href="${contextPath }/member/logout">LOGOUT</a>
 	</c:if>
 	<a href="${contextPath }/member/list">MEMBERS</a>
+	<a href="${contextPath }/board/boardAllList">게시판</a>
 	
 	<hr>
 </body>

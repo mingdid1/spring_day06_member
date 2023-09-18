@@ -14,4 +14,6 @@ public interface MemberService {
 	public Map<String, Object> getMember(String id);
 	// HashMap 부모형태 사용
 	public void mod(MemberDTO dto, String[] addr);
+	public void keepLogin(String sessionId, String id);
+	public MemberDTO getUserSessionId(String sessionId);
 }

@@ -1,11 +1,14 @@
 package com.care.root.controller;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +33,7 @@ public class MemberController implements LoginSession{
 	@PostMapping("logChk")
 	public String logChk(@RequestParam String id,
 						@RequestParam String pw,
+						@RequestParam(required=false, defaultValue="off") String autoLogin,
 						HttpSession session,
 						RedirectAttributes rs) {
 		int result = ms.logChk(id, pw);
@@ -39,28 +43,60 @@ public class MemberController implements LoginSession{
 			// 상속 받아서 사용가능
 			// session.setAttribute(LOGIN, id);
 			
+			System.out.println("logChk : "+ autoLogin);
 			rs.addAttribute("id", id);
+			rs.addAttribute("autoLogin", autoLogin);
 			return "redirect:successLogin";
 		}
 		return "redirect:login";
 	}
 	
 	@GetMapping("successLogin")
-	public String successLogin(@RequestParam String id, 
-							HttpSession session) {
+	public String successLogin(@RequestParam String id,
+							@RequestParam String autoLogin,
+							HttpSession session,
+							HttpServletResponse res) {
 		
+		System.out.println("successLogin : "+ autoLogin);
+		
+		if(autoLogin.equals("on")) {
+			int limitTime = 60*60*24*90;	//90일 설정
+
+			Cookie loginCookie = new Cookie("loginCookie", session.getId());
+			// session.getId() : 고유한 값(JSESSIONID의 값) 
+			// 					-> 식별자 값으로 사용가능
+			
+			loginCookie.setPath("/");	// "/" 하위 모든 경로에 적용
+			loginCookie.setMaxAge(limitTime);	// 지정한 90일동안 사용
+			res.addCookie(loginCookie);
+			
+			ms.keepLogin(session.getId(), id);
+		}
 		session.setAttribute(LOGIN,id);
 		return "member/successLogin";
 	}
 	
 	@GetMapping("logout")
-	public String logout(HttpSession session) {
+	public String logout(HttpSession session,
+				@CookieValue(required = false) Cookie loginCookie,
+				HttpServletResponse res) {
+				// @CookieValue(value="loginCookie", required = false) Cookie cookie) {
+				// 지정한 이름과 다르게 사용할 때
+		if (loginCookie != null) {
+			loginCookie.setMaxAge(0);
+			res.addCookie(loginCookie);
+			
+			ms.keepLogin("nan", (String)session.getAttribute(LoginSession.LOGIN));
+		}
 		session.invalidate();
-		return "redirect:login";
+		// return "redirect:login";
+		return "redirect:/index";
 	}
 
 	@GetMapping("list")
 	public String list(Model model) {
+		System.out.println("ctrl list 동작");
+		
 		model.addAttribute("list", ms.getList());
 		return "member/list";
 	}
